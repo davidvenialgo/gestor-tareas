@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Eliminar Tarea</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background-color: #c82333;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Botón Eliminar</h1>
+        
+        <div>
+            <button class="test-button" onclick="testEliminarTarea(1, true)">
+                🗑️ Eliminar Tarea Propia
+            </button>
+            <button class="test-button" onclick="testEliminarTarea(2, false)">
+                📤 Remover Tarea Compartida
+            </button>
+        </div>
+        
+        <h3>Logs de la consola:</h3>
+        <div id="log" class="log"></div>
+        
+        <h3>Estado del token:</h3>
+        <div id="token-status">Verificando...</div>
+    </div>
+
+    <script>
+        // Simular las variables globales
+        const API_URL = 'http://127.0.0.1:8000/api/tareas';
+        let token = localStorage.getItem('token') || 'test-token-123';
+        
+        // Función para mostrar logs
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        // Función para mostrar estado del token
+        function updateTokenStatus() {
+            const statusDiv = document.getElementById('token-status');
+            if (token && token !== 'test-token-123') {
+                statusDiv.innerHTML = `<span style="color: green;">✅ Token válido: ${token.substring(0, 20)}...</span>`;
+            } else {
+                statusDiv.innerHTML = `<span style="color: red;">❌ Token no válido o de prueba</span>`;
+            }
+        }
+        
+        // Función de prueba para eliminar tarea
+        async function testEliminarTarea(id, esPropia) {
+            log(`=== INICIO TEST eliminarTarea ===`);
+            log(`ID: ${id}, Es propia: ${esPropia}`);
+            log(`Token: ${token ? 'Presente' : 'Ausente'}`);
+            log(`API_URL: ${API_URL}`);
+            
+            const tituloAccion = esPropia ? 'Eliminar Tarea' : 'Remover de mi Bandeja';
+            const mensajeAccion = esPropia 
+                ? '¿Estás seguro de que quieres eliminar esta tarea? Esta acción no se puede deshacer.'
+                : '¿Estás seguro de que quieres remover esta tarea de tu bandeja? La tarea seguirá existiendo para el usuario que la compartió.';
+            const textoBoton = esPropia ? 'Eliminar' : 'Remover';
+            
+            log(`Creando modal con: ${tituloAccion} - ${textoBoton}`);
+            
+            // Crear modal dinámicamente
+            const modalHTML = `
+                <div id="modal-eliminar-dinamico" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 999999;
+                ">
+                    <div style="
+                        background-color: white;
+                        padding: 30px;
+                        border-radius: 10px;
+                        max-width: 400px;
+                        width: 90%;
+                        text-align: center;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                    ">
+                        <h3 style="margin-bottom: 15px; color: #333;">${tituloAccion}</h3>
+                        <p style="margin-bottom: 20px; color: #666;">${mensajeAccion}</p>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button onclick="testConfirmarEliminar(${id})" style="
+                                padding: 10px 20px;
+                                background-color: #dc3545;
+                                color: white;
+                                border: none;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 16px;
+                            ">${textoBoton}</button>
+                            <button onclick="testCerrarModal()" style="
+                                padding: 10px 20px;
+                                background-color: #6c757d;
+                                color: white;
+                                border: none;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 16px;
+                            ">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Agregar el modal al body
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            log(`Modal creado y agregado al DOM`);
+            log(`Modal visible: ${document.getElementById('modal-eliminar-dinamico') ? 'Sí' : 'No'}`);
+        }
+        
+        // Función de prueba para confirmar eliminación
+        async function testConfirmarEliminar(tareaId) {
+            log(`=== INICIO testConfirmarEliminar ===`);
+            log(`Confirmando eliminación de tarea: ${tareaId}`);
+            
+            try {
+                log(`Enviando petición DELETE a: ${API_URL}/${tareaId}`);
+                
+                const res = await fetch(`${API_URL}/${tareaId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                log(`Respuesta recibida: ${res.status} ${res.statusText}`);
+                log(`Headers: ${JSON.stringify(Object.fromEntries(res.headers.entries()), null, 2)}`);
+
+                if (res.ok) {
+                    log(`✅ Respuesta exitosa`);
+                    try {
+                        const responseData = await res.json();
+                        log(`Datos de respuesta: ${JSON.stringify(responseData, null, 2)}`);
+                        alert(`✅ ${responseData.message || 'Tarea eliminada correctamente'}`);
+                    } catch (error) {
+                        log(`No hay JSON en la respuesta`);
+                        alert(`✅ Tarea eliminada correctamente`);
+                    }
+                } else {
+                    log(`❌ Respuesta no exitosa`);
+                    try {
+                        const errorData = await res.json();
+                        log(`Error del servidor: ${JSON.stringify(errorData, null, 2)}`);
+                        alert(`❌ Error: ${errorData.message || 'Error desconocido'}`);
+                    } catch (error) {
+                        log(`Error al parsear respuesta: ${error.message}`);
+                        alert(`❌ Error del servidor`);
+                    }
+                }
+            } catch (error) {
+                log(`❌ Error de red: ${error.message}`);
+                alert(`❌ Error de conexión: ${error.message}`);
+            }
+            
+            log(`=== FIN testConfirmarEliminar ===`);
+            testCerrarModal();
+        }
+        
+        // Función para cerrar el modal
+        function testCerrarModal() {
+            const modal = document.getElementById('modal-eliminar-dinamico');
+            if (modal) {
+                modal.remove();
+                log(`Modal cerrado`);
+            }
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            log(`Página cargada`);
+            updateTokenStatus();
+            
+            // Verificar si hay un token real
+            if (localStorage.getItem('token')) {
+                token = localStorage.getItem('token');
+                log(`Token real encontrado en localStorage`);
+            } else {
+                log(`Usando token de prueba`);
+            }
+        });
+    </script>
+</body>
+</html> 
