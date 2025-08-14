@@ -7,4 +7,13 @@ services:
   run:
     command: php artisan serve --host=0.0.0.0 --port=3000
   ports:
-    - 3000 
+    - 3000
+  env:
+    APP_KEY: base64:$(openssl rand -base64 32)
+    APP_ENV: production
+    APP_DEBUG: false
+    APP_URL: https://gestor-tareas.zeabur.app
+    DB_CONNECTION: sqlite
+    CACHE_DRIVER: file
+    SESSION_DRIVER: file
+    QUEUE_DRIVER: sync 
