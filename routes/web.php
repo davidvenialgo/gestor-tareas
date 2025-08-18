@@ -14,7 +14,7 @@ use App\Http\Controllers\TareaController;
 |
 */
 
-Route::get('/', [TareaController::class, 'index'])->name('home');
+Route::get('/', [TareaController::class, 'webIndex'])->name('home');
 
 // Ruta de login para evitar errores de redirección
 Route::get('/login', function () {
