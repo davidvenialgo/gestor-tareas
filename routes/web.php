@@ -14,7 +14,14 @@ use App\Http\Controllers\TareaController;
 |
 */
 
-Route::get('/', [TareaController::class, 'webIndex'])->name('home');
+Route::get('/', function() {
+    return '¡Hola! Esta es la página principal de tu sistema de tareas.';
+})->name('home');
+
+// Ruta de prueba para verificar que el controlador funciona
+Route::get('/test', function() {
+    return '¡Hola! El controlador funciona correctamente.';
+});
 
 // Ruta de login para evitar errores de redirección
 Route::get('/login', function () {
