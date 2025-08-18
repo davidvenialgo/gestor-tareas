@@ -37,7 +37,6 @@
             @php
                 $vencida = !$tarea['completada'] && isset($tarea['fecha_limite']) && $tarea['fecha_limite'] && \Carbon\Carbon::parse($tarea['fecha_limite'])->isPast();
             @endphp
-            <pre>{{ var_export($tarea, true) }}</pre>
             <div class="col-md-6 mb-3">
                 <div class="card {{ $vencida ? 'tarea-vencida' : '' }}">
                     <div class="card-body">
