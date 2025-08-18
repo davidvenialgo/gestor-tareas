@@ -3,8 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TareaController;
 
-/*
-|--------------------------------------------------------------------------
+/*|--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 |
@@ -40,3 +39,4 @@ Route::get('/storage/{path}', function ($path) {
 })->where('path', '.*');
 
 Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
+
