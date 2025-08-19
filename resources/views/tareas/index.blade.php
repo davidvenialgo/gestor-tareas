@@ -214,7 +214,7 @@
                             <div class="stat-label">Pendientes</div>
                         </div>
                         <div class="col-md-3 stat-item">
-                            <div class="stat-number text-danger">{{ $tareas->filter(function($tarea) { return !$tarea->completada && $tarea->fecha_limite && Carbon\Carbon::parse($tarea->fecha_limite)->isPast(); })->count() }}</div>
+                            <div class="stat-number text-danger">{{ $tareas->filter(function($tarea) { return !$tarea->completada && $tarea->fecha_limite && \Carbon\Carbon::parse($tarea->fecha_limite)->isPast(); })->count() }}</div>
                             <div class="stat-label">Vencidas</div>
                         </div>
                     </div>
@@ -224,7 +224,7 @@
                 <div class="row">
                     @foreach($tareas as $tarea)
                         @php
-                            $vencida = !$tarea->completada && $tarea->fecha_limite && Carbon\Carbon::parse($tarea->fecha_limite)->isPast();
+                            $vencida = !$tarea->completada && $tarea->fecha_limite && \Carbon\Carbon::parse($tarea->fecha_limite)->isPast();
                             $cardClass = 'task-card';
                             if ($tarea->completada) {
                                 $cardClass .= ' completed';
@@ -256,7 +256,7 @@
                                         <i class="fas fa-calendar-alt"></i>
                                         <strong>Fecha límite:</strong> 
                                         @if($tarea->fecha_limite)
-                                            {{ Carbon\Carbon::parse($tarea->fecha_limite)->format('d/m/Y H:i') }}
+                                            {{ \Carbon\Carbon::parse($tarea->fecha_limite)->format('d/m/Y H:i') }}
                                         @else
                                             Sin fecha
                                         @endif
