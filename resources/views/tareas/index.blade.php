@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión de Tareas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
@@ -32,6 +32,23 @@
             margin-bottom: 30px;
             font-size: 2.5rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-create {
+            background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: white;
         }
         
         .task-card {
@@ -150,6 +167,48 @@
             color: #212529;
         }
         
+        .task-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-action {
+            margin: 5px;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-complete {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-share {
+            background: #6f42c1;
+            color: white;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+        
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -187,6 +246,22 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+        
+        .search-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -196,6 +271,14 @@
                 <i class="fas fa-tasks me-3"></i>
                 Sistema de Gestión de Tareas
             </h1>
+            
+            <!-- Botón Crear Tarea -->
+            <div class="text-center mb-4">
+                <button class="btn btn-create" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                    <i class="fas fa-plus me-2"></i>
+                    Crear Nueva Tarea
+                </button>
+            </div>
             
             @if($tareas->count() > 0)
                 <!-- Estadísticas -->
@@ -216,6 +299,26 @@
                         <div class="col-md-3 stat-item">
                             <div class="stat-number text-danger">{{ $tareas->filter(function($tarea) { return !$tarea->completada && $tarea->fecha_limite && \Carbon\Carbon::parse($tarea->fecha_limite)->isPast(); })->count() }}</div>
                             <div class="stat-label">Vencidas</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Búsqueda y Filtros -->
+                <div class="search-container">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Buscar tareas...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="filterSelect">
+                                <option value="">Todas las tareas</option>
+                                <option value="pendientes">Solo pendientes</option>
+                                <option value="completadas">Solo completadas</option>
+                                <option value="vencidas">Solo vencidas</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -287,6 +390,27 @@
                                             </a>
                                         </div>
                                     @endif
+                                    
+                                    <!-- Botones de Acción -->
+                                    <div class="task-actions">
+                                        @if(!$tarea->completada)
+                                            <button class="btn btn-action btn-complete" onclick="completeTask({{ $tarea->id }})">
+                                                <i class="fas fa-check me-1"></i>Completar
+                                            </button>
+                                        @endif
+                                        
+                                        <button class="btn btn-action btn-edit" onclick="editTask({{ $tarea->id }})">
+                                            <i class="fas fa-edit me-1"></i>Editar
+                                        </button>
+                                        
+                                        <button class="btn btn-action btn-share" onclick="shareTask({{ $tarea->id }})">
+                                            <i class="fas fa-share me-1"></i>Compartir
+                                        </button>
+                                        
+                                        <button class="btn btn-action btn-delete" onclick="deleteTask({{ $tarea->id }})">
+                                            <i class="fas fa-trash me-1"></i>Eliminar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -302,6 +426,93 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Modal para Crear Tarea -->
+    <div class="modal fade" id="createTaskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Nueva Tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTaskForm">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Título *</label>
+                                <input type="text" class="form-control" name="titulo" required>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Descripción</label>
+                                <textarea class="form-control" name="descripcion" rows="3"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Prioridad</label>
+                                <select class="form-select" name="prioridad">
+                                    <option value="baja">Baja</option>
+                                    <option value="media" selected>Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha Límite</label>
+                                <input type="datetime-local" class="form-control" name="fecha_limite">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Archivo Adjunto</label>
+                                <input type="file" class="form-control" name="archivo">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitTask()">Crear Tarea</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funciones para las acciones de tareas
+        function completeTask(taskId) {
+            if (confirm('¿Marcar esta tarea como completada?')) {
+                // Aquí iría la lógica para marcar como completada
+                console.log('Completar tarea:', taskId);
+            }
+        }
+        
+        function editTask(taskId) {
+            // Aquí iría la lógica para editar
+            console.log('Editar tarea:', taskId);
+        }
+        
+        function shareTask(taskId) {
+            // Aquí iría la lógica para compartir
+            console.log('Compartir tarea:', taskId);
+        }
+        
+        function deleteTask(taskId) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                // Aquí iría la lógica para eliminar
+                console.log('Eliminar tarea:', taskId);
+            }
+        }
+        
+        function submitTask() {
+            // Aquí iría la lógica para crear la tarea
+            console.log('Crear nueva tarea');
+            $('#createTaskModal').modal('hide');
+        }
+        
+        // Búsqueda y filtros
+        document.getElementById('searchInput').addEventListener('input', function() {
+            // Lógica de búsqueda
+        });
+        
+        document.getElementById('filterSelect').addEventListener('change', function() {
+            // Lógica de filtrado
+        });
+    </script>
 </body>
 </html> 
