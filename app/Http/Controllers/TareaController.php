@@ -260,4 +260,15 @@ class TareaController extends Controller
             return response()->json(['message' => 'Error al obtener las tareas'], 500);
         }
     }
+
+    /**
+     * Método para mostrar la vista web de tareas (sin autenticación)
+     */
+    public function webIndex()
+    {
+        // Obtener algunas tareas de ejemplo para mostrar
+        $tareas = Tarea::orderBy('created_at', 'desc')->limit(10)->get();
+        
+        return view('tareas.index', compact('tareas'));
+    }
 }

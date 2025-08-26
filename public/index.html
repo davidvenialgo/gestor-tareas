@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="icon" type="image/png" href="img/d.png">
+
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    <script>
+        if(localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            }else{
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+            }
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Botón flecha para desplegar/contraer menú -->
+        <button id="sidebar-toggle" class="sidebar-toggle">
+            <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+
+        <!-- Menú de botones central -->
+        <div class="menu-overlay" id="menu-overlay">
+            <div class="menu-container" id="menu-container">
+                <div class="menu-header">
+                    <h2 class="menu-title">🎯 Gestor de Tareas</h2>
+                    <div class="menu-controls">
+                        <button id="themeToggleBtn" class="btn btn-outline-secondary">
+                            <i class="bi bi-moon-fill"></i> Cambiar Tema
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-grid">
+                    <!-- Botón principal - Mis Tareas -->
+                    <div class="menu-card primary" data-section="tareas" onclick="irATareas(); closeMenu();">
+                        <div class="menu-card-icon">
+                            <i class="bi bi-kanban"></i>
+                        </div>
+                        <h3>Mis Tareas</h3>
+                        <p>Gestiona tus tareas diarias</p>
+                    </div>
+
+                    <!-- Ver Usuarios -->
+                    <div class="menu-card" id="menu-ver-usuarios" data-section="ver-usuarios" onclick="irAUsuarios(); closeMenu();" style="display: none;">
+                        <div class="menu-card-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>Ver Usuarios</h3>
+                        <p>Lista de usuarios del sistema</p>
+                    </div>
+
+                    <!-- Reportes de Tareas -->
+                    <div class="menu-card" id="menu-reportes" data-section="reportes" onclick="irAReportes(); closeMenu();" style="display: none;">
+                        <div class="menu-card-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3>Reportes</h3>
+                        <p>Reportes de tareas por usuario</p>
+                    </div>
+
+                    <!-- Configuración -->
+                    <div class="menu-card" data-section="perfil" onclick="irAPerfil(); closeMenu();">
+                        <div class="menu-card-icon">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <h3>Mi Perfil</h3>
+                        <p>Configurar cuenta</p>
+                    </div>
+
+                    <div class="menu-card danger" onclick="logout()">
+                        <div class="menu-card-icon">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </div>
+                        <h3>Cerrar Sesión</h3>
+                        <p>Salir del sistema</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content" id="main-content">
+            <!-- Sección de login -->
+            <div id="login-section" class="content-section">
+                <div class="card">
+                    <h2>Iniciar Sesión</h2>
+                    <form id="form-login">
+                        <div class="form-group">
+                            <input type="text" id="username" placeholder="Usuario" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="password" placeholder="Contraseña" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit">Iniciar Sesión</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Sección de tareas -->
+            <div id="tareas-section" class="content-section" style="display: none;">
+                <div class="tareas-wrapper">
+                    <div class="tareas-header">
+                        <h1>🎯 Mis Tareas</h1>
+                        <div class="user-info">
+                            <span id="bienvenida"></span>
+                            <button onclick="toggleFormulario()" class="btn btn-success btn-sm">
+                                <i class="bi bi-plus-circle"></i> Crear Tarea
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tareas-content">
+                        <!-- Ordenamiento y estadísticas -->
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label for="ordenar-por">Ordenar por:</label>
+                                <select id="ordenar-por" onchange="cargarTareas()">
+                                    <option value="creacion">Fecha de Creación</option>
+                                    <option value="prioridad">Prioridad</option>
+                                    <option value="fecha-limite">Fecha Límite</option>
+                                </select>
+                            </div>
+                            <button onclick="toggleGrafico()" class="btn btn-info">
+                                <i class="bi bi-graph-up"></i> Ver Estadísticas
+                            </button>
+                        </div>
+
+                        <!-- Filtros -->
+                        
+
+                        <!-- Botón para mostrar/ocultar formulario -->
+                        
+
+                        <!-- Formulario de nueva tarea -->
+                        <form id="form-tarea" style="display: none;">
+                            <div class="form-row">
+                                <input type="text" id="titulo" placeholder="Título de la tarea" required>
+                                <input type="text" id="descripcion" placeholder="Descripción">
+                            </div>
+                            <div class="form-row">
+                                <input type="file" id="archivo" accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, image/*">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-plus-circle"></i> Agregar Tarea
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Filtros de estado -->
+                        <div id="filtros">
+                            <button onclick="filtrar('todas')" class="filtro-btn active">Todas</button>
+                            <button onclick="filtrar('pendientes')" class="filtro-btn">Pendientes</button>
+                            <button onclick="filtrar('completadas')" class="filtro-btn">Completadas</button>
+                        </div>
+
+                        <!-- Contador y buscador -->
+                        <div class="info-row">
+                            <div id="contador-tareas">
+                                Total: 0 | Pendientes: 0 | Completadas: 0
+                            </div>
+                            <input type="text" id="buscador" placeholder="🔍 Buscar tarea...">
+                        </div>
+
+                        <!-- Lista de tareas -->
+                        <ul id="lista-tareas"></ul>
+
+                        <!-- Paginación -->
+                        <div id="paginacion"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de perfil -->
+            <section id="perfil-section" class="content-section" style="display: none;">
+                <div class="perfil-wrapper">
+                    <div class="perfil-header">
+                        <h1><i class="bi bi-person-circle"></i> Mi Perfil</h1>
+                        <button onclick="irATareas()" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Volver a Tareas
+                        </button>
+                    </div>
+
+                    <div class="perfil-content">
+                        <!-- Información del usuario -->
+                        <div class="perfil-info-card">
+                            <div class="perfil-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="perfil-details">
+                                <h3 id="perfil-nombre-actual">Cargando...</h3>
+                                <p id="perfil-username-actual">Usuario: Cargando...</p>
+                                <p id="perfil-email-actual">Email: Cargando...</p>
+                                <p id="perfil-status-actual">Estado: Cargando...</p>
+                                <p id="perfil-fecha-registro">Fecha de registro: Cargando...</p>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de edición -->
+                        <div class="perfil-form-card">
+                            <h3><i class="bi bi-pencil-square"></i> Editar Información</h3>
+                            <form id="form-perfil">
+                                <div class="form-group">
+                                    <label for="perfil-nombre">Nombre completo *</label>
+                                    <input type="text" id="perfil-nombre" placeholder="Ingresa tu nombre completo" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="perfil-username">Nombre de usuario</label>
+                                    <input type="text" id="perfil-username" placeholder="Ingresa tu nombre de usuario">
+                                    <small class="form-info">Deja vacío para mantener el actual</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="perfil-email">Email</label>
+                                    <input type="email" id="perfil-email" placeholder="Ingresa tu email">
+                                    <small class="form-info">Deja vacío para mantener el actual</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="perfil-password">Nueva contraseña</label>
+                                    <input type="password" id="perfil-password" placeholder="Deja vacío para mantener la actual">
+                                    <small class="form-info">Mínimo 8 caracteres</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="perfil-password-confirm">Confirmar nueva contraseña</label>
+                                    <input type="password" id="perfil-password-confirm" placeholder="Confirma la nueva contraseña">
+                                </div>
+                                
+
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Guardar Cambios
+                                    </button>
+                                    <button type="button" onclick="cancelarEdicion()" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de reportes -->
+            <section id="reportes-section" class="content-section" style="display: none;">
+                <div class="reportes-wrapper">
+                    <div class="reportes-header">
+                        <h1><i class="bi bi-graph-up"></i> Reportes de Tareas</h1>
+                        <button onclick="irATareas()" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Volver a Tareas
+                        </button>
+                    </div>
+
+                    <div class="reportes-content">
+                        <!-- Filtros de reporte -->
+                        <div class="reportes-filters">
+                            <div class="filter-group">
+                                <label for="reporte-usuario">Usuario:</label>
+                                <select id="reporte-usuario" class="form-select">
+                                    <option value="">Todos los usuarios</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="reporte-estado">Estado:</label>
+                                <select id="reporte-estado" class="form-select">
+                                    <option value="">Todos los estados</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="completada">Completada</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="reporte-prioridad">Prioridad:</label>
+                                <select id="reporte-prioridad" class="form-select">
+                                    <option value="">Todas las prioridades</option>
+                                    <option value="baja">Baja</option>
+                                    <option value="media">Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="reporte-fecha">Fecha:</label>
+                                <input type="date" id="reporte-fecha" class="form-control">
+                            </div>
+                            <button onclick="generarReporte()" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Generar Reporte
+                            </button>
+                        </div>
+
+                        <!-- Estadísticas del reporte -->
+                        <div class="reportes-stats">
+                            <div class="stat-card">
+                                <i class="bi bi-list-task"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="total-tareas-reporte">0</span>
+                                    <span class="stat-label">Total Tareas</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="bi bi-check-circle"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="tareas-completadas-reporte">0</span>
+                                    <span class="stat-label">Completadas</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="bi bi-clock"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="tareas-pendientes-reporte">0</span>
+                                    <span class="stat-label">Pendientes</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="tareas-vencidas-reporte">0</span>
+                                    <span class="stat-label">Vencidas</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lista de tareas del reporte -->
+                        <div class="reportes-list-container">
+                            <div id="reportes-list" class="reportes-list">
+                                <!-- Las tareas se cargarán dinámicamente aquí -->
+                            </div>
+                        </div>
+
+                        <!-- Paginación del reporte -->
+                        <div id="paginacion-reportes" class="paginacion-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de usuarios -->
+            <section id="usuarios-section" class="content-section" style="display: none;">
+                <div class="usuarios-wrapper">
+                    <div class="usuarios-header">
+                        <h1>👥 Gestión de Usuarios</h1>
+                        <div class="usuarios-controls">
+                            <button onclick="abrirModalCrearUsuario()" class="btn btn-success btn-sm">
+                                <i class="bi bi-person-plus"></i> Crear Usuario
+                            </button>
+                            <button onclick="volverATareas()" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Volver a Tareas
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="usuarios-content">
+                        <!-- Controles de búsqueda y filtros -->
+                        <div class="usuarios-controls-row">
+                            <div class="search-group">
+                                <input type="text" id="buscador-usuarios" placeholder="🔍 Buscar usuario..." class="form-control">
+                            </div>
+                            <div class="filter-group">
+                                <select id="filtro-estado-usuarios" class="form-select">
+                                    <option value="todos">Todos los usuarios</option>
+                                    <option value="activos">Usuarios activos</option>
+                                    <option value="inactivos">Usuarios inactivos</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas -->
+                        <div class="usuarios-stats">
+                            <div class="stat-card">
+                                <i class="bi bi-people-fill"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="total-usuarios">0</span>
+                                    <span class="stat-label">Total Usuarios</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="bi bi-person-check-fill"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="usuarios-activos">0</span>
+                                    <span class="stat-label">Usuarios Activos</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="bi bi-person-x-fill"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="usuarios-inactivos">0</span>
+                                    <span class="stat-label">Usuarios Inactivos</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lista de usuarios -->
+                        <div class="usuarios-list-container">
+                            <div id="usuarios-list" class="usuarios-list">
+                                <!-- Los usuarios se cargarán dinámicamente aquí -->
+                            </div>
+                        </div>
+
+                        <!-- Paginación -->
+                        <div id="paginacion-usuarios" class="paginacion-container"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="modal-eliminar" class="modal-overlay" style="display: none;">
+        <div class="modal-contenido">
+            <h3>¿Estás seguro de querer eliminar esta tarea?</h3>
+            <p>Esta acción no se puede deshacer.</p>
+            <button id="confirmar-eliminar" onclick="confirmarEliminar()">Eliminar</button>
+            <button id="cancelar-eliminar" onclick="cancelarEliminar()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modal-compartir" class="modal-overlay" style="display: none;">
+        <div class="modal-contenido">
+            <h3>Compartir Tarea</h3>
+            <p>Ingresa el nombre de usuario con quien quieres compartir esta tarea:</p>
+            <input type="text" id="compartir-usuario-modal" placeholder="Nombre de usuario" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px;">
+            <button onclick="confirmarCompartir()">Compartir</button>
+            <button onclick="cancelarCompartir()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="mensaje-exito" class="toast-exito">✅ Tarea guardada</div>
+
+    <div id="notificacion-tareas" class="toast-notificacion" style="display: none;"></div>
+
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-grafico">
+            <button id="cerrar-modal" onclick="toggleGrafico()">✖</button>
+            <canvas id="grafico-tareas" width="250" height="250"></canvas>
+        </div>
+    </div>
+
+    <div id="mensajeCompartida" class="toast oculto">
+        <p>✅ Tarea compartida correctamente</p>
+    </div>
+
+    <!-- Modal para crear tarea -->
+    <div id="modal-crear-tarea" class="modal-overlay" style="display: none;">
+        <div class="modal-crear-tarea">
+            <div class="modal-header">
+                <h3><i class="bi bi-plus-circle"></i> Crear Nueva Tarea</h3>
+                <button class="modal-close" onclick="cerrarModalCrearTarea()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form id="form-tarea-modal">
+                <div class="form-group">
+                    <label for="titulo-modal">Título de la tarea *</label>
+                    <input type="text" id="titulo-modal" placeholder="Ingresa el título de la tarea" required>
+                </div>
+                <div class="form-group">
+                    <label for="descripcion-modal">Descripción</label>
+                    <textarea id="descripcion-modal" placeholder="Describe la tarea (opcional)" rows="3"></textarea>
+                </div>
+                <div class="form-row-modal">
+                    <div class="form-group">
+                        <label for="prioridad-modal">Prioridad</label>
+                        <select id="prioridad-modal">
+                            <option value="baja">🟢 Baja</option>
+                            <option value="media">🟡 Media</option>
+                            <option value="alta">🔴 Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha-limite-modal">Fecha límite</label>
+                        <input type="date" id="fecha-limite-modal">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="archivo-modal">Archivo adjunto</label>
+                    <input type="file" id="archivo-modal" accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, image/*">
+                    <small class="file-info">Formatos permitidos: PDF, Word, Excel, PowerPoint, imágenes</small>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCrearTarea()">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Crear Tarea
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para crear usuario -->
+    <div id="modal-crear-usuario" class="modal-overlay" style="display: none;">
+        <div class="modal-crear-usuario">
+            <div class="modal-header">
+                <h3><i class="bi bi-person-plus"></i> Crear Nuevo Usuario</h3>
+                <button class="modal-close" onclick="cerrarModalCrearUsuario()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form id="form-usuario-modal">
+                <div class="form-group">
+                    <label for="nombre-usuario-modal">Nombre completo *</label>
+                    <input type="text" id="nombre-usuario-modal" placeholder="Ingresa el nombre completo" required>
+                </div>
+                <div class="form-group">
+                    <label for="username-usuario-modal">Nombre de usuario *</label>
+                    <input type="text" id="username-usuario-modal" placeholder="Ingresa el nombre de usuario" required>
+                    <small class="form-info">Debe ser único en el sistema</small>
+                </div>
+                <div class="form-row-modal">
+                    <div class="form-group">
+                        <label for="password-usuario-modal">Contraseña *</label>
+                        <input type="password" id="password-usuario-modal" placeholder="Ingresa la contraseña" required>
+                        <small class="form-info">Mínimo 8 caracteres</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmar-password-usuario-modal">Confirmar contraseña *</label>
+                        <input type="password" id="confirmar-password-usuario-modal" placeholder="Confirma la contraseña" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email-usuario-modal">Email (opcional)</label>
+                    <input type="email" id="email-usuario-modal" placeholder="Ingresa el email">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCrearUsuario()">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Crear Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para editar perfil -->
+    <div id="modal-editar-perfil" class="modal-overlay" style="display: none;">
+        <div class="modal-crear-usuario">
+            <div class="modal-header">
+                <h3><i class="bi bi-person-circle"></i> Editar Perfil</h3>
+                <button class="modal-close" onclick="cerrarModalEditarPerfil()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form id="form-editar-perfil-modal">
+                <div class="form-group">
+                    <label for="perfil-nombre-modal">Nombre completo *</label>
+                    <input type="text" id="perfil-nombre-modal" placeholder="Ingresa tu nombre completo" required>
+                </div>
+                <div class="form-row-modal">
+                    <div class="form-group">
+                        <label for="perfil-password-modal">Nueva contraseña</label>
+                        <input type="password" id="perfil-password-modal" placeholder="Deja vacío para mantener la actual">
+                        <small class="form-info">Mínimo 8 caracteres</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmar-perfil-password-modal">Confirmar nueva contraseña</label>
+                        <input type="password" id="confirmar-perfil-password-modal" placeholder="Confirma la nueva contraseña">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalEditarPerfil()">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Forzar actualización del favicon
+        function actualizarFavicon() {
+            const timestamp = new Date().getTime();
+            const favicon = document.querySelector('link[rel="icon"]');
+            if (favicon) {
+                favicon.href = `images/icono-tareas.png?v=${timestamp}`;
+                console.log('Favicon actualizado con timestamp:', timestamp);
+            }
+        }
+        
+        // Actualizar favicon al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarFavicon();
+        });
+        
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            themeToggleBtn.innerHTML = newTheme === 'light'
+            ? '<i class="bi bi-moon-fill"></i> Modo Oscuro'
+            : '<i class="bi bi-sun-fill"></i> Modo Claro';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            themeToggleBtn.innerHTML = currentTheme === 'dark'
+            ? '<i class="bi bi-moon-fill"></i> Modo Oscuro'
+            : '<i class="bi bi-sun-fill"></i> Modo Claro';
+        });
+
+        // Funcionalidad del menú de botones
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const menuOverlay = document.getElementById('menu-overlay');
+
+        function closeMenu() {
+            const menuOverlay = document.getElementById('menu-overlay');
+            menuOverlay.classList.remove('show');
+        }
+
+        function toggleMenu() {
+            const menuOverlay = document.getElementById('menu-overlay');
+            if (menuOverlay.classList.contains('show')) {
+                closeMenu();
+            } else {
+                menuOverlay.classList.add('show');
+            }
+        }
+
+        function irATareas() {
+            console.log('🚀 Navegando a Mis Tareas...');
+            
+            // Verificar si el usuario está logueado
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('⚠️ Usuario no logueado, mostrando login');
+                mostrarSeccion('login-section');
+                return;
+            }
+            
+            // Mostrar sección de tareas
+            mostrarSeccion('tareas-section');
+            
+            // Actualizar bienvenida si existe
+            const bienvenida = document.getElementById('bienvenida');
+            if (bienvenida) {
+                const username = localStorage.getItem('username');
+                if (username) {
+                    bienvenida.textContent = `¡Bienvenido, ${username}!`;
+                }
+            }
+            
+            // Recargar tareas si la función existe
+            if (typeof cargarTareas === 'function') {
+                console.log('🔄 Cargando tareas...');
+                setTimeout(() => {
+                    cargarTareas();
+                }, 100);
+            } else {
+                console.error('❌ Función cargarTareas no encontrada');
+            }
+        }
+
+        function irAPerfil() {
+            console.log('🚀 Navegando a Mi Perfil...');
+            
+            // Mostrar sección de perfil
+            mostrarSeccion('perfil-section');
+            
+            // Cargar datos del usuario
+            if (typeof cargarDatosPerfil === 'function') {
+                cargarDatosPerfil();
+            }
+        }
+        
+        function irAReportes() {
+            console.log('🚀 Navegando a Reportes...');
+            
+            // Verificar permisos para acceder a reportes
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (!user.can_view_reports) {
+                        alert('No tienes permisos para acceder a esta funcionalidad');
+                        console.log('❌ Acceso denegado a Reportes - sin permisos para usuario ID:', user.id);
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error al parsear datos del usuario:', e);
+                    alert('Error al verificar permisos');
+                    return;
+                }
+            }
+            
+            // Mostrar sección de reportes
+            mostrarSeccion('reportes-section');
+            
+            // Cargar datos iniciales
+            if (typeof cargarDatosReportes === 'function') {
+                cargarDatosReportes();
+            }
+        }
+        
+        function cargarDatosPerfil() {
+            console.log('🔄 Cargando datos del perfil...');
+            
+            // Obtener datos del usuario desde localStorage
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    
+                    // Mostrar información actual
+                    document.getElementById('perfil-nombre-actual').textContent = user.name || 'Sin nombre';
+                    document.getElementById('perfil-username-actual').textContent = `Usuario: ${user.username || 'N/A'}`;
+                    document.getElementById('perfil-email-actual').textContent = `Email: ${user.email || 'N/A'}`;
+                    document.getElementById('perfil-status-actual').textContent = `Estado: ${user.status === 'activo' ? 'Activo' : 'Inactivo'}`;
+                    
+                    // Formatear fecha de registro
+                    if (user.created_at) {
+                        const fecha = new Date(user.created_at);
+                        const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        document.getElementById('perfil-fecha-registro').textContent = `Fecha de registro: ${fechaFormateada}`;
+                    } else {
+                        document.getElementById('perfil-fecha-registro').textContent = 'Fecha de registro: N/A';
+                    }
+                    
+                    // Llenar formulario con datos actuales
+                    document.getElementById('perfil-nombre').value = user.name || '';
+                    document.getElementById('perfil-username').value = user.username || '';
+                    document.getElementById('perfil-email').value = user.email || '';
+                    // Los permisos se eliminaron del formulario, pero se mantienen en el backend
+                    
+                    console.log('✅ Datos del perfil cargados correctamente');
+                } catch (e) {
+                    console.error('❌ Error al parsear datos del usuario:', e);
+                    mostrarErrorPerfil('Error al cargar los datos del perfil');
+                }
+            } else {
+                console.error('❌ No se encontraron datos del usuario');
+                mostrarErrorPerfil('No se encontraron datos del usuario');
+            }
+        }
+        
+        function mostrarErrorPerfil(mensaje) {
+            // Mostrar mensaje de error en los campos
+            document.getElementById('perfil-nombre-actual').textContent = 'Error al cargar';
+            document.getElementById('perfil-username-actual').textContent = 'Error al cargar';
+            document.getElementById('perfil-email-actual').textContent = 'Error al cargar';
+            document.getElementById('perfil-status-actual').textContent = 'Error al cargar';
+            document.getElementById('perfil-fecha-registro').textContent = 'Error al cargar';
+            
+            alert(mensaje);
+        }
+
+        sidebarToggle.addEventListener('click', toggleMenu);
+        menuClose.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', function(e) {
+            if (e.target === menuOverlay) {
+                closeMenu();
+            }
+        });
+
+        // Navegación del menú
+        document.querySelectorAll('.menu-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const section = this.getAttribute('data-section');
+                console.log('🎯 Clic detectado en tarjeta:', section);
+                console.log('Elemento clickeado:', this);
+                
+                if (section === 'tareas') {
+                    console.log('🚀 Ejecutando irATareas()...');
+                    irATareas();
+                } else if (section === 'perfil') {
+                    console.log('🚀 Ejecutando irAPerfil()...');
+                    irAPerfil();
+                } else if (section === 'ver-usuarios') {
+                    console.log('✅ Navegando a Ver Usuarios');
+                    alert('Función "Ver Usuarios" - En desarrollo');
+                }
+                
+                // Cerrar el menú después de seleccionar
+                closeMenu();
+            });
+        });
+
+        // Asegurar que el evento se registre después de que el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Re-registrar eventos para las tarjetas del menú
+            document.querySelectorAll('.menu-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const section = this.getAttribute('data-section');
+                    console.log('🎯 Clic detectado en tarjeta (DOM ready):', section);
+                    
+                    if (section === 'tareas') {
+                        console.log('🚀 Ejecutando irATareas()...');
+                        irATareas();
+                    } else if (section === 'perfil') {
+                        console.log('🚀 Ejecutando irAPerfil()...');
+                        irAPerfil();
+                    } else if (section === 'ver-usuarios') {
+                        console.log('✅ Navegando a Ver Usuarios');
+                        alert('Función "Ver Usuarios" - En desarrollo');
+                    }
+                    
+                    // Cerrar el menú después de seleccionar
+                    closeMenu();
+                });
+            });
+        });
+
+        // Cerrar menú con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMenu();
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="script.js"></script>
+</body>
+</html>

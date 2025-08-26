@@ -35,17 +35,16 @@
     <div class="row">
         @foreach($tareas as $tarea)
             @php
-                $vencida = !$tarea['completada'] && isset($tarea['fecha_limite']) && $tarea['fecha_limite'] && \Carbon\Carbon::parse($tarea['fecha_limite'])->isPast();
+                $vencida = !$tarea->completada && isset($tarea->fecha_limite) && $tarea->fecha_limite && \Carbon\Carbon::parse($tarea->fecha_limite)->isPast();
             @endphp
-            <pre>{{ var_export($tarea, true) }}</pre>
             <div class="col-md-6 mb-3">
                 <div class="card {{ $vencida ? 'tarea-vencida' : '' }}">
                     <div class="card-body">
-                        <h5 class="card-title">{{ $tarea['titulo'] }}</h5>
+                        <h5 class="card-title">{{ $tarea->titulo }}</h5>
                         <p><strong>¿Vencida?</strong> {{ $vencida ? 'SÍ' : 'NO' }}</p>
-                        <p>{{ $tarea['descripcion'] ?? '' }}</p>
-                        <p><strong>Fecha límite:</strong> {{ $tarea['fecha_limite'] ?? 'Sin fecha' }}</p>
-                        <p><strong>Completada:</strong> {{ $tarea['completada'] ? 'Sí' : 'No' }}</p>
+                        <p>{{ $tarea->descripcion ?? '' }}</p>
+                        <p><strong>Fecha límite:</strong> {{ $tarea->fecha_limite ?? 'Sin fecha' }}</p>
+                        <p><strong>Completada:</strong> {{ $tarea->completada ? 'Sí' : 'No' }}</p>
                     </div>
                 </div>
             </div>
