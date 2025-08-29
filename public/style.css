@@ -81,13 +81,88 @@
     --sidebar-glass: rgba(45, 45, 45, 0.9);
 }
 
-body{
+/* ===== FORZAR RESPONSIVE - ESTILOS BASE ===== */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
     background: var(--gradient-primary);
     color: var(--text-primary);
     transition: all 0.3s ease;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+/* Forzar responsive en contenedores principales */
+.app-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.main-content {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Forzar responsive en menú */
+.menu-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+/* Forzar responsive en cards */
+.card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Forzar responsive en formularios */
+.form-control {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Forzar responsive en botones */
+.btn {
+    box-sizing: border-box;
+}
+
+/* Forzar responsive en tablas */
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+}
+
+.table {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 h1{
