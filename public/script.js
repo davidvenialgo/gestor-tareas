@@ -1,8 +1,8 @@
-const API_URL = 'http://127.0.0.1:8000/api/tareas';
-const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
+//const API_URL = 'http://127.0.0.1:8000/api/tareas';
+//const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
 
-//const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
-//const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
+const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
+const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
 
 const formLogin = document.getElementById('form-login');
 const loginSection = document.getElementById('login-section');
