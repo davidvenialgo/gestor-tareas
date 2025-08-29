@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# Si la petición es para la API, redirigir a Laravel
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^api/(.*)$ ../server.php [L]
+
+# Si el archivo o directorio no existe, redirigir a index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [L]

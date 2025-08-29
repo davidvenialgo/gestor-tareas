@@ -8,13 +8,16 @@ use App\Http\Controllers\TareaController;
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
+| Here you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
 */
 
-Route::get('/', [TareaController::class, 'webIndex'])->name('home');
+// Ruta principal que sirve el archivo index.html del frontend
+Route::get('/', function () {
+    return response()->file(public_path('index.html'));
+})->name('home');
 
 // Ruta de login para evitar errores de redirección
 Route::get('/login', function () {
