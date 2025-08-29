@@ -1,8 +1,8 @@
-//const API_URL = 'http://127.0.0.1:8000/api/tareas';
-//const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
+const API_URL = 'http://127.0.0.1:8000/api/tareas';
+const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
 
-const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
-const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
+//const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
+//const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
 
 const formLogin = document.getElementById('form-login');
 const loginSection = document.getElementById('login-section');
@@ -136,12 +136,16 @@ async function cargarTareas(){
         // Verificar si la tarea está vencida
         const tareaVencida = !tarea.completada && tarea.fecha_limite && new Date(tarea.fecha_limite) < new Date();
         
-        // Generar botones según el tipo de tarea
+        // Generar botones según el tipo de tarea - RESPONSIVE
         const botonesTarea = esTareaPropia 
-            ? `<a href="#" onclick="editarTarea(${tarea.id}, '${tarea.titulo.replace(/'/g, "\\'")}', '${tarea.descripcion.replace(/'/g, "\\'")}')">Editar</a>
-               <a href="#" onclick="compartirTareaDirecto(${tarea.id})">Compartir</a>
-               <a href="#" onclick="eliminarTarea(${tarea.id}, event, true); return false;">Eliminar</a>`
-            : `<a href="#" onclick="eliminarTarea(${tarea.id}, event, false); return false;">Remover de mi bandeja</a>`;
+            ? `<div class="botones-tarea-responsive">
+                   <a href="#" onclick="editarTarea(${tarea.id}, '${tarea.titulo.replace(/'/g, "\\'")}', '${tarea.descripcion.replace(/'/g, "\\'")}')" class="btn-tarea-responsive">Editar</a>
+                   <a href="#" onclick="compartirTareaDirecto(${tarea.id})" class="btn-tarea-responsive">Compartir</a>
+                   <a href="#" onclick="eliminarTarea(${tarea.id}, event, true); return false;" class="btn-tarea-responsive">Eliminar</a>
+               </div>`
+            : `<div class="botones-tarea-responsive">
+                   <a href="#" onclick="eliminarTarea(${tarea.id}, event, false); return false;" class="btn-tarea-responsive">Remover de mi bandeja</a>
+               </div>`;
         
         li.innerHTML = `
             <div style="display: flex; align-items: center; width: 100%; position: relative; min-height: 60px;">
