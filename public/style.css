@@ -3204,3 +3204,299 @@ input[type="date"] #fecha-limite:focus{
 .tarea-reporte-item.vencida .tarea-reporte-title {
     color: #dc3545;
 }
+
+/* ===== RESPONSIVE DESIGN PARA MÓVILES ===== */
+
+/* Tablets y móviles grandes (768px y menos) */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 10px;
+    }
+    
+    .menu-container {
+        width: 95%;
+        max-width: 95%;
+        margin: 20px auto;
+    }
+    
+    .menu-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .menu-card {
+        padding: 20px;
+    }
+    
+    .menu-card h3 {
+        font-size: 1.2rem;
+    }
+    
+    .card {
+        margin: 10px 0;
+        padding: 20px;
+    }
+    
+    .card h2 {
+        font-size: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 12px;
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .btn-group .btn {
+        width: auto;
+        margin: 2px;
+    }
+    
+    .table-responsive {
+        font-size: 14px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 8px 4px;
+    }
+    
+    .sidebar-toggle {
+        top: 10px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+    
+    /* Ajustes para formularios de tareas */
+    .tarea-form {
+        padding: 15px;
+    }
+    
+    .tarea-form .row {
+        margin: 0;
+    }
+    
+    .tarea-form .col-md-6 {
+        padding: 0 5px;
+        margin-bottom: 15px;
+    }
+    
+    /* Ajustes para reportes */
+    .reporte-filtros {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .reporte-filtros .form-group {
+        width: 100%;
+    }
+    
+    .tarea-reporte-item {
+        padding: 15px;
+    }
+    
+    .tarea-reporte-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .tarea-reporte-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+/* Móviles pequeños (480px y menos) */
+@media (max-width: 480px) {
+    .app-container {
+        padding: 5px;
+    }
+    
+    .menu-container {
+        width: 98%;
+        margin: 10px auto;
+        padding: 15px;
+    }
+    
+    .menu-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .menu-card {
+        padding: 15px;
+    }
+    
+    .card {
+        padding: 15px;
+        margin: 5px 0;
+    }
+    
+    .card h2 {
+        font-size: 1.3rem;
+    }
+    
+    .form-control {
+        padding: 10px;
+        font-size: 16px;
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    
+    .table-responsive {
+        font-size: 12px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 6px 3px;
+        font-size: 12px;
+    }
+    
+    .modal-dialog {
+        margin: 10px;
+        max-width: 95%;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .toast {
+        width: 95%;
+        margin: 10px auto;
+    }
+    
+    /* Ajustes específicos para móviles pequeños */
+    .tarea-form .col-md-6 {
+        padding: 0;
+        margin-bottom: 10px;
+    }
+    
+    .tarea-reporte-item {
+        padding: 12px;
+    }
+    
+    .tarea-reporte-title {
+        font-size: 1rem;
+    }
+    
+    .tarea-reporte-description {
+        font-size: 0.9rem;
+    }
+    
+    .btn-reporte {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+}
+
+/* Móviles muy pequeños (360px y menos) */
+@media (max-width: 360px) {
+    .menu-container {
+        padding: 10px;
+    }
+    
+    .menu-card {
+        padding: 12px;
+    }
+    
+    .menu-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    .card {
+        padding: 12px;
+    }
+    
+    .form-control {
+        padding: 8px;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .table-responsive {
+        font-size: 11px;
+    }
+    
+    .tarea-reporte-item {
+        padding: 10px;
+    }
+    
+    .tarea-reporte-title {
+        font-size: 0.95rem;
+    }
+    
+    .tarea-reporte-description {
+        font-size: 0.85rem;
+    }
+    
+    .btn-reporte {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+}
+
+/* Orientación landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+    .menu-container {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .tarea-form .row {
+        flex-direction: row;
+    }
+    
+    .tarea-form .col-md-6 {
+        width: 50%;
+        padding: 0 5px;
+    }
+}
+
+/* Ajustes para pantallas muy altas en móviles */
+@media (max-width: 768px) and (min-height: 800px) {
+    .menu-container {
+        max-height: 80vh;
+    }
+    
+    .app-container {
+        padding: 20px 10px;
+    }
+}
+
+/* Ajustes para dispositivos con notch (iPhone X, etc.) */
+@supports (padding: max(0px)) {
+    @media (max-width: 768px) {
+        .app-container {
+            padding-left: max(10px, env(safe-area-inset-left));
+            padding-right: max(10px, env(safe-area-inset-right));
+        }
+        
+        .sidebar-toggle {
+            top: max(10px, env(safe-area-inset-top) + 10px);
+        }
+    }
+}
