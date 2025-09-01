@@ -1,8 +1,8 @@
-//const API_URL = 'http://127.0.0.1:8000/api/tareas';
-//const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
+const API_URL = 'http://127.0.0.1:8000/api/tareas';
+const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
 
-const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
-const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
+//const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
+//const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
 
 
 const formLogin = document.getElementById('form-login');
@@ -218,7 +218,7 @@ form.onsubmit = async (e) => {
     const datos = {
         titulo: titulo.value.trim(),
         descripcion: descripcion.value.trim(),
-        prioridad: document.getElementById('prioridad').value,
+        prioridad: document.getElementById('prioridad').value || null,
         fecha_limite: document.getElementById('fecha-limite').value || null,
     }
 
@@ -226,7 +226,7 @@ form.onsubmit = async (e) => {
 
     formData.append('titulo', titulo.value.trim());
     formData.append('descripcion', descripcion.value.trim());
-    formData.append('prioridad', document.getElementById('prioridad').value);
+    formData.append('prioridad', document.getElementById('prioridad').value || null);
     formData.append('fecha_limite', document.getElementById('fecha-limite').value || null);
     
     const archivoInput = document.getElementById('archivo');

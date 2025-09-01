@@ -146,49 +146,78 @@ class TareaController extends Controller
         return response()->json($tarea, 201);
     }
 
-    public function show($id)
+    public function show(Request $request, Tarea $tarea)
     {
-        return Tarea::findOrFail($id);
+        Log::info('Obteniendo tarea ID: ' . $tarea->id . ' por usuario: ' . $request->user()->id);
+        
+        // Verificar que el usuario tenga acceso a esta tarea (propia o compartida)
+        $usuario = $request->user();
+        $tieneAcceso = $tarea->user_id === $usuario->id || 
+                       $tarea->compartidosCon()->where('user_id', $usuario->id)->exists();
+        
+        if (!$tieneAcceso) {
+            Log::warning('Usuario sin acceso a tarea: ' . $tarea->id);
+            return response()->json(['message' => 'No tienes acceso a esta tarea'], 403);
+        }
+        
+        Log::info('Tarea obtenida exitosamente:', $tarea->toArray());
+        return response()->json($tarea, 200);
     }
 
     public function update(Request $request, Tarea $tarea)
     {
+        Log::info('Actualizando tarea ID: ' . $tarea->id . ' por usuario: ' . $request->user()->id);
+        Log::info('Datos recibidos en update:', $request->all());
+        
         if($tarea->user_id !== $request->user()->id){
+            Log::warning('Usuario sin permisos para actualizar tarea: ' . $tarea->id);
             return response()->json(['message' => 'No tienes permisos para actualizar esta tarea'], 403);
         }
 
+        // Validación más simple y directa
         $request->validate([
-            'titulo' => 'sometimes|required|string|max:255',
-            'descripcion' => 'sometimes|nullable|string',
-            'prioridad' => 'sometimes|in:baja,media,alta',
-            'fecha_limite' => 'sometimes|nullable|date',
-            'completada' => 'sometimes|boolean',
+            'titulo' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'prioridad' => 'nullable|in:baja,media,alta',
+            'fecha_limite' => 'nullable|date',
+            'completada' => 'nullable|boolean',
             'archivo' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,bmp,webp|max:5120',
         ]);
-
-        $updateData = [];
         
-        if ($request->has('titulo')) {
-            $updateData['titulo'] = $request->titulo;
-        }
-        if ($request->has('descripcion')) {
-            $updateData['descripcion'] = $request->descripcion;
-        }
-        if ($request->has('prioridad')) {
-            $updateData['prioridad'] = $request->prioridad;
-        }
-        if ($request->has('fecha_limite')) {
-            $updateData['fecha_limite'] = $request->fecha_limite;
-        }
+        Log::info('Validación pasada exitosamente');
+
+        // Actualizar todos los campos directamente
+        $updateData = [
+            'titulo' => $request->titulo,
+            'descripcion' => $request->descripcion,
+            'prioridad' => $request->prioridad,
+            'fecha_limite' => $request->fecha_limite,
+        ];
+        
+        // Solo agregar completada si se envía
         if ($request->has('completada')) {
             $updateData['completada'] = $request->completada;
         }
 
+        // Solo actualizar archivo si se envía uno nuevo
         if ($request->hasFile('archivo')){
             $updateData['archivo'] = $request->file('archivo')->store('archivos', 'public');
         }
 
-        $tarea->update($updateData);
+        Log::info('Datos a actualizar:', $updateData);
+        
+        // Verificar el estado antes de la actualización
+        Log::info('Estado ANTES de la actualización:', $tarea->toArray());
+        
+        $resultado = $tarea->update($updateData);
+        
+        Log::info('Resultado de la actualización:', ['resultado' => $resultado]);
+        
+        // Refrescar el modelo para obtener los datos actualizados
+        $tarea->refresh();
+        
+        Log::info('Estado DESPUÉS de la actualización:', $tarea->toArray());
+        
         return response()->json($tarea, 200);
     }
 

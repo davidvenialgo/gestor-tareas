@@ -722,6 +722,14 @@ li input[type="checkbox"]{
     min-width: 140px;
 }
 
+.form-row button.btn-secondary {
+    background: var(--button-secondary);
+}
+
+.form-row button.btn-secondary:hover {
+    background: var(--button-secondary-hover);
+}
+
 .form-row button:hover {
     background: var(--button-primary-hover);
     transform: translateY(-1px);

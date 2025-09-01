@@ -28,12 +28,15 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
 
     Route::get('tareas', [TareaController::class, 'index']);
     Route::post('tareas', [TareaController::class, 'store']);
-    Route::put('tareas/{tarea}', [TareaController::class, 'update']);
+    Route::get('tareas/{tarea}', [TareaController::class, 'show']);
     Route::delete('tareas/{tarea}', [TareaController::class, 'destroy']);
     Route::get('tareas-todas', [TareaController::class, 'todasLasTareas']);
     
     Route::get('usuarios', [AuthController::class, 'obtenerUsuarios']);
 });
+
+// Ruta de actualización usando POST para evitar problemas de redirección
+Route::middleware(['auth:sanctum', 'check.user.status'])->post('tareas/{tarea}/update', [TareaController::class, 'update']);
 
 Route::middleware(['auth:sanctum', 'check.user.status'])->put('usuario', [AuthController::class, 'actualizarPerfil']);
 

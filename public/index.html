@@ -154,9 +154,20 @@
                                 <input type="text" id="descripcion" placeholder="Descripción">
                             </div>
                             <div class="form-row">
+                                <select id="prioridad">
+                                    <option value="baja">🟢 Baja</option>
+                                    <option value="media">🟡 Media</option>
+                                    <option value="alta">🔴 Alta</option>
+                                </select>
+                                <input type="date" id="fecha-limite">
+                            </div>
+                            <div class="form-row">
                                 <input type="file" id="archivo" accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, image/*">
                                 <button type="submit" class="btn btn-success">
                                     <i class="bi bi-plus-circle"></i> Agregar Tarea
+                                </button>
+                                <button type="button" onclick="cancelarEdicionTarea()" class="btn btn-secondary" style="display: none;" id="btn-cancelar-edicion">
+                                    <i class="bi bi-x-circle"></i> Cancelar
                                 </button>
                             </div>
                         </form>
@@ -843,6 +854,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

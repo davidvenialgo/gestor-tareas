@@ -1,32 +1,44 @@
-//const API_URL = 'http://127.0.0.1:8000/api/tareas';
-//const LOGIN_URL = 'http://127.0.0.1:8000/api/login';
-
-const API_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/tareas';
-const LOGIN_URL = 'https://gestor-tareas-dv.mnz.dom.my.id/api/login';
+// Las variables de configuración se cargan desde config.js
+// API_BASE_URL, API_URL, LOGIN_URL, etc.
 
 const formLogin = document.getElementById('form-login');
 const loginSection = document.getElementById('login-section');
 const tareasSection = document.getElementById('tareas-section');
 
 let token = localStorage.getItem('token');
-
 let paginaActual = 1;
-
 let grafico = null;
-
 let editandoId = null;
 let filtroActivos = 'todas';
 let timeoutBusqueda = null;
-let tareaAEliminar = null; // Variable para almacenar el ID de la tarea a eliminar
+let tareaAEliminar = null;
 
 // Variables para control de inactividad
-let tiempoInactividad = 30 * 60 * 1000; // 30 minutos en milisegundos
+let tiempoInactividad = 30 * 60 * 1000;
 let temporizadorInactividad = null;
 
 const lista = document.getElementById('lista-tareas');
 const form = document.getElementById('form-tarea');
 const titulo = document.getElementById('titulo');
 const descripcion = document.getElementById('descripcion');
+
+// Verificar que los elementos se hayan encontrado
+console.log('🔍 Elementos del formulario cargados:', {
+    form: !!form,
+    titulo: !!titulo,
+    descripcion: !!descripcion,
+    prioridad: !!document.getElementById('prioridad'),
+    fecha_limite: !!document.getElementById('fecha-limite')
+});
+
+// Configurar el evento onsubmit del formulario
+if (form) {
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        console.log('📝 Evento onsubmit del formulario disparado');
+        await enviarFormulario();
+    };
+}
 
 async function cargarTareas(){ 
     console.log('Iniciando carga de tareas...');
@@ -51,6 +63,9 @@ async function cargarTareas(){
         params.append('buscar', textoBusqueda);
     }
     
+    // Agregar timestamp para evitar cache
+    params.append('_t', Date.now());
+    
     const url = `${API_URL}?${params.toString()}`;
     console.log('Cargando tareas con URL:', url);
 
@@ -59,6 +74,8 @@ async function cargarTareas(){
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
             },
         });
 
@@ -68,6 +85,19 @@ async function cargarTareas(){
         
         const data = await res.json();
         console.log('Datos recibidos:', data);
+        console.log('Número de tareas recibidas:', data.data ? data.data.length : 0);
+        
+        // Log específico para verificar si hay tareas con datos actualizados
+        if (data.data && data.data.length > 0) {
+            console.log('🔍 Primeras 3 tareas recibidas:', data.data.slice(0, 3).map(t => ({
+                id: t.id,
+                titulo: t.titulo,
+                descripcion: t.descripcion,
+                prioridad: t.prioridad,
+                fecha_limite: t.fecha_limite,
+                updated_at: t.updated_at
+            })));
+        }
         
         if (!data.data) {
             console.error('No se encontró la propiedad data en la respuesta');
@@ -139,7 +169,7 @@ async function cargarTareas(){
         // Generar botones según el tipo de tarea - RESPONSIVE
         const botonesTarea = esTareaPropia 
             ? `<div class="botones-tarea-responsive">
-                   <a href="#" onclick="editarTarea(${tarea.id}, '${tarea.titulo.replace(/'/g, "\\'")}', '${tarea.descripcion.replace(/'/g, "\\'")}')" class="btn-tarea-responsive">Editar</a>
+                   <a href="#" onclick="editarTarea(${tarea.id}, '${tarea.titulo.replace(/'/g, "\\'")}', '${tarea.descripcion.replace(/'/g, "\\'")}', '${tarea.prioridad || ''}', '${tarea.fecha_limite || ''}')" class="btn-tarea-responsive">Editar</a>
                    <a href="#" onclick="compartirTareaDirecto(${tarea.id})" class="btn-tarea-responsive">Compartir</a>
                    <a href="#" onclick="eliminarTarea(${tarea.id}, event, true); return false;" class="btn-tarea-responsive">Eliminar</a>
                </div>`
@@ -190,9 +220,11 @@ async function cargarTareas(){
             const esImagen = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension);
             
             if (esImagen) {
-                li.innerHTML += `<br><img src="http://127.0.0.1:8000/storage/${tarea.archivo}" alt="Imagen adjunta" style="width: 150px; height: auto; border-radius: 8px; margin-top: 10px;">`;
+                // Usar URL de storage desde configuración
+                li.innerHTML += `<br><img src="${STORAGE_URL}/storage/${tarea.archivo}" alt="Imagen adjunta" style="width: 150px; height: auto; border-radius: 8px; margin-top: 10px;">`;
             } else {
-                li.innerHTML += `<br><a href="http://127.0.0.1:8000/storage/${tarea.archivo}" target="_blank" style="color: #007bff; text-decoration: none;">📎 Ver archivo</a>`;
+                // Usar URL de storage desde configuración
+                li.innerHTML += `<br><a href="${STORAGE_URL}/storage/${tarea.archivo}" target="_blank" style="color: #007bff; text-decoration: none;">📎 Ver archivo</a>`;
             }
         }
 
@@ -209,8 +241,14 @@ async function cargarTareas(){
     }
 }
 
-form.onsubmit = async (e) => {
-    e.preventDefault();
+async function enviarFormulario() {
+    console.log('🚀 Función enviarFormulario ejecutada - editandoId:', editandoId);
+    console.log('📝 Valores del formulario:', {
+        titulo: titulo.value.trim(),
+        descripcion: descripcion.value.trim(),
+        prioridad: document.getElementById('prioridad').value,
+        fecha_limite: document.getElementById('fecha-limite').value
+    });
 
     if(titulo.value.trim() === ''){
         alert('Por favor, escribe un titulo para la tarea');
@@ -218,51 +256,259 @@ form.onsubmit = async (e) => {
         return;
     }
 
+    // Verificar que el token esté disponible
+    if (!token) {
+        alert('Error: No hay sesión activa. Por favor, inicia sesión nuevamente.');
+        logout();
+        return;
+    }
+
     const datos = {
         titulo: titulo.value.trim(),
         descripcion: descripcion.value.trim(),
-        prioridad: document.getElementById('prioridad').value,
+        prioridad: document.getElementById('prioridad').value || null,
         fecha_limite: document.getElementById('fecha-limite').value || null,
     }
 
-    const formData = new FormData();
+    try {
+        const formData = new FormData();
 
-    formData.append('titulo', titulo.value.trim());
-    formData.append('descripcion', descripcion.value.trim());
-    formData.append('prioridad', document.getElementById('prioridad').value);
-    formData.append('fecha_limite', document.getElementById('fecha-limite').value || null);
-    
-    const archivoInput = document.getElementById('archivo');
-    if (archivoInput.files.length > 0) {
-        formData.append('archivo', archivoInput.files[0]);
+        const tituloValue = titulo.value.trim();
+        const descripcionValue = descripcion.value.trim();
+        const prioridadValue = document.getElementById('prioridad').value || null;
+        const fechaLimiteValue = document.getElementById('fecha-limite').value || null;
+
+        formData.append('titulo', tituloValue);
+        formData.append('descripcion', descripcionValue);
+        formData.append('prioridad', prioridadValue);
+        formData.append('fecha_limite', fechaLimiteValue);
+        
+        console.log('📤 Datos que se envían al servidor:', {
+            titulo: tituloValue,
+            descripcion: descripcionValue,
+            prioridad: prioridadValue,
+            fecha_limite: fechaLimiteValue,
+            editandoId: editandoId
+        });
+        
+        // Log adicional para debug
+        console.log('🔍 VALORES ACTUALES DEL FORMULARIO:');
+        console.log('  - Título:', tituloValue);
+        console.log('  - Descripción:', descripcionValue);
+        console.log('  - Prioridad:', prioridadValue);
+        console.log('  - Fecha límite:', fechaLimiteValue);
+        console.log('  - ID de tarea a editar:', editandoId);
+        
+        const archivoInput = document.getElementById('archivo');
+        if (archivoInput.files.length > 0) {
+            formData.append('archivo', archivoInput.files[0]);
+            console.log('📎 Archivo adjunto:', archivoInput.files[0].name);
+        }
+
+        const fueEdicion = !!editandoId;
+        
+        // Verificar que las variables estén definidas
+        if (typeof API_URL === 'undefined') {
+            console.error('❌ API_URL no está definida');
+            alert('Error de configuración: API_URL no está definida');
+            return;
+        }
+        
+        if (fueEdicion && !editandoId) {
+            console.error('❌ editandoId no está definido para edición');
+            alert('Error: No se puede determinar qué tarea editar');
+            return;
+        }
+        
+        // Construir URL de forma más robusta
+        let url;
+        if (editandoId) {
+            // Usar POST en lugar de PUT para evitar problemas de redirección del servidor
+            url = `http://127.0.0.1:8000/api/tareas/${editandoId}/update`;
+            console.log('🔧 Usando POST para actualización (evita redirección del servidor)');
+        } else {
+            url = `http://127.0.0.1:8000/api/tareas`;
+        }
+        
+        console.log('🔍 DEBUG DE URL:');
+        console.log('  - editandoId:', editandoId);
+        console.log('  - API_URL:', API_URL);
+        console.log('  - fueEdicion:', fueEdicion);
+        console.log('  - URL construida:', url);
+        console.log('  - URL es absoluta:', url.startsWith('http'));
+        console.log('  - URL contiene /api/tareas:', url.includes('/api/tareas'));
+        console.log('🌐 Enviando petición a:', url);
+        console.log('📤 Método:', editandoId ? 'PUT' : 'POST');
+        console.log('🔑 Token:', token ? 'Disponible' : 'No disponible');
+        
+        // Verificación final antes del fetch
+        console.log('🔍 VERIFICACIÓN FINAL ANTES DEL FETCH:');
+        console.log('  - URL final:', url);
+        console.log('  - Método final:', editandoId ? 'PUT' : 'POST');
+        console.log('  - editandoId final:', editandoId);
+        console.log('  - Tipo de URL:', typeof url);
+        console.log('  - Longitud de URL:', url.length);
+        
+        // Verificación crítica de la URL
+        if (!url.startsWith('http://127.0.0.1:8000/api/')) {
+            console.error('❌ URL incorrecta detectada:', url);
+            alert('Error: URL incorrecta para la petición');
+            return;
+        }
+        
+        if (editandoId && !url.includes(`/${editandoId}`)) {
+            console.error('❌ URL no contiene el ID de la tarea:', url, 'ID:', editandoId);
+            alert('Error: URL no contiene el ID de la tarea');
+            return;
+        }
+
+        // Intentar con URL absoluta y opciones adicionales
+        const fetchOptions = {
+            method: 'POST', // Siempre usar POST para evitar problemas de redirección
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+            // Agregar opciones para evitar problemas de redirección
+            redirect: 'follow',
+            cache: 'no-cache'
+        };
+        
+        console.log('🔧 Opciones del fetch:', fetchOptions);
+        console.log('🚨 URL QUE SE VA A USAR EN FETCH:', url);
+        console.log('🚨 VERIFICACIÓN FINAL DE URL:', {
+            url: url,
+            esString: typeof url === 'string',
+            longitud: url.length,
+            contieneApi: url.includes('/api'),
+            contieneTareas: url.includes('/tareas'),
+            contieneId: editandoId ? url.includes(`/${editandoId}`) : 'N/A'
+        });
+        
+        // Crear una nueva variable para asegurar que no se modifique
+        const urlFinal = String(url);
+        console.log('🚨 URL FINAL COMO STRING:', urlFinal);
+        
+        const res = await fetch(urlFinal, fetchOptions);
+        
+        console.log('📥 Respuesta recibida:', res.status, res.statusText);
+        console.log('🔍 URL de la respuesta:', res.url);
+        console.log('🔍 Headers de la respuesta:', Object.fromEntries(res.headers.entries()));
+        
+        // Verificar si hay redirección
+        if (res.url !== urlFinal) {
+            console.error('🚨 REDIRECCIÓN DETECTADA:');
+            console.error('  - URL enviada:', urlFinal);
+            console.error('  - URL de respuesta:', res.url);
+            console.error('  - ¿Son diferentes?', res.url !== urlFinal);
+        }
+
+        if (await manejarErrorAutenticacion(res)) return;
+        
+        if (res.ok) {
+            console.log('✅ Respuesta exitosa del servidor');
+            
+            // Intentar obtener la respuesta del servidor para verificar los datos
+            try {
+                const responseData = await res.clone().json();
+                console.log('📋 Datos devueltos por el servidor:', responseData);
+                console.log('🔍 COMPARACIÓN DE DATOS:');
+                console.log('  - Título enviado:', tituloValue, 'vs recibido:', responseData.titulo);
+                console.log('  - Descripción enviada:', descripcionValue, 'vs recibida:', responseData.descripcion);
+                console.log('  - Prioridad enviada:', prioridadValue, 'vs recibida:', responseData.prioridad);
+                console.log('  - Fecha límite enviada:', fechaLimiteValue, 'vs recibida:', responseData.fecha_limite);
+            } catch (e) {
+                console.log('⚠️ No se pudo parsear la respuesta del servidor como JSON');
+            }
+            
+            // Guardar el ID de la tarea antes de limpiarlo para verificación
+            const tareaIdParaVerificar = editandoId;
+            
+            if (editandoId) {
+                console.log('🔄 Limpiando editandoId:', editandoId);
+                editandoId = null;
+            }
+            
+            mostrarMensajeExito(fueEdicion ? 'Tarea actualizada correctamente' : 'Tarea creada correctamente');
+            
+            // Limpiar formulario solo si la operación fue exitosa
+            titulo.value = '';
+            descripcion.value = '';
+            document.getElementById('prioridad').value = 'baja';
+            document.getElementById('fecha-limite').value = '';
+            document.getElementById('archivo').value = '';
+            
+            // Ocultar el formulario después de enviar
+            form.style.display = 'none';
+            
+            // Restaurar botón de envío y ocultar botón de cancelar
+            const btnCancelar = document.getElementById('btn-cancelar-edicion');
+            const btnEnviar = form.querySelector('button[type="submit"]');
+            
+            if (btnCancelar) btnCancelar.style.display = 'none';
+            if (btnEnviar) btnEnviar.innerHTML = '<i class="bi bi-plus-circle"></i> Agregar Tarea';
+            
+            // Recargar tareas solo si la operación fue exitosa
+            console.log('🔄 Recargando tareas después de actualización exitosa...');
+            // Pequeño delay para asegurar que el servidor haya procesado la actualización
+            setTimeout(() => {
+                cargarTareas();
+                
+                // Verificación adicional: buscar la tarea específica que se actualizó
+                if (fueEdicion && tareaIdParaVerificar) {
+                    setTimeout(() => {
+                        verificarTareaActualizada(tareaIdParaVerificar);
+                    }, 1000);
+                }
+            }, 500);
+        } else {
+            // Manejar errores del servidor
+            try {
+                const errorData = await res.json();
+                console.error('Error del servidor:', errorData);
+                alert(`Error al ${fueEdicion ? 'actualizar' : 'crear'} la tarea: ${errorData.message || 'Error desconocido'}`);
+            } catch (e) {
+                console.error('Error al parsear respuesta de error:', e);
+                alert(`Error al ${fueEdicion ? 'actualizar' : 'crear'} la tarea: Error del servidor (${res.status})`);
+            }
+            return;
+        }
+    } catch (error) {
+        console.error('Error de red al enviar formulario:', error);
+        alert(`Error de conexión al ${editandoId ? 'actualizar' : 'crear'} la tarea: ${error.message}`);
+        return;
     }
+}
 
-    const fueEdicion = !!editandoId;
-    const url = editandoId ? `${API_URL}/${editandoId}` : API_URL;
-
-    const res = await fetch(url, {
-        method: editandoId ? 'PUT' : 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-    });
-
-    if (manejarErrorAutenticacion(res)) return;
+// Función para verificar si una tarea específica fue actualizada
+async function verificarTareaActualizada(tareaId) {
+    console.log('🔍 Verificando si la tarea ID', tareaId, 'fue actualizada...');
     
-    if (editandoId) {
-        editandoId = null;
+    try {
+        const res = await fetch(`${API_URL}/${tareaId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
+            },
+        });
+        
+        if (res.ok) {
+            const tarea = await res.json();
+            console.log('📋 Estado actual de la tarea:', {
+                id: tarea.id,
+                titulo: tarea.titulo,
+                descripcion: tarea.descripcion,
+                prioridad: tarea.prioridad,
+                fecha_limite: tarea.fecha_limite,
+                updated_at: tarea.updated_at
+            });
+        } else {
+            console.error('❌ Error al verificar tarea:', res.status);
+        }
+    } catch (error) {
+        console.error('❌ Error de red al verificar tarea:', error);
     }
-    
-    mostrarMensajeExito(fueEdicion ? 'Tarea actualizada correctamente' : 'Tarea creada correctamente');
-
-    titulo.value = '';
-    descripcion.value = '';
-    document.getElementById('prioridad').value = 'media';
-    document.getElementById('fecha-limite').value = '';
-    document.getElementById('archivo').value = '';
-    cargarTareas();
-};
+}
 
 async function eliminarTarea (id, event, esPropia = null){
     if(event) event.preventDefault();
@@ -433,19 +679,58 @@ function cancelarEliminar(){
     tareaAEliminar = null;
 }
 
-function editarTarea (id, t, d){
+function editarTarea (id, t, d, p, f){
     titulo.value = t;
     descripcion.value = d;
+    
+    // Establecer prioridad
+    const prioridadSelect = document.getElementById('prioridad');
+    if (prioridadSelect) {
+        prioridadSelect.value = p || 'baja';
+    }
+    
+    // Establecer fecha límite
+    const fechaLimiteInput = document.getElementById('fecha-limite');
+    if (fechaLimiteInput) {
+        fechaLimiteInput.value = f || '';
+    }
+    
     editandoId = id;
+    console.log('🔧 editandoId establecido a:', editandoId);
 
     // Mostrar el formulario de edición
     form.style.display = 'block';
+    
+    // Mostrar botón de cancelar y cambiar texto del botón de envío
+    const btnCancelar = document.getElementById('btn-cancelar-edicion');
+    const btnEnviar = form.querySelector('button[type="submit"]');
+    
+    if (btnCancelar) btnCancelar.style.display = 'inline-block';
+    if (btnEnviar) btnEnviar.innerHTML = '<i class="bi bi-check-circle"></i> Actualizar Tarea';
     
     // Ocultar la sección de compartir si existe
     const compartirSection = document.getElementById('compartir-section');
     if (compartirSection) {
         compartirSection.style.display = 'none';
     }
+}
+
+function cancelarEdicionTarea(){
+    editandoId = null;
+    titulo.value = '';
+    descripcion.value = '';
+    document.getElementById('prioridad').value = 'baja';
+    document.getElementById('fecha-limite').value = '';
+    document.getElementById('archivo').value = '';
+    
+    // Restaurar botón de envío y ocultar botón de cancelar
+    const btnCancelar = document.getElementById('btn-cancelar-edicion');
+    const btnEnviar = form.querySelector('button[type="submit"]');
+    
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    if (btnEnviar) btnEnviar.innerHTML = '<i class="bi bi-plus-circle"></i> Agregar Tarea';
+    
+    form.style.display = 'none';
 }
 
 async function toggleCompletado(id, estado){
@@ -710,7 +995,7 @@ function cargarDatosReportes() {
 async function cargarUsuariosParaReportes() {
     try {
         console.log('🔄 Cargando usuarios para filtro de reportes...');
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios', {
+        const response = await fetch(USUARIOS_URL, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
@@ -755,7 +1040,7 @@ async function cargarUsuariosParaReportes() {
 
 async function cargarTodasLasTareas() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/tareas-todas', {
+        const response = await fetch(TAREAS_TODAS_URL, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
@@ -1057,7 +1342,7 @@ document.getElementById('form-perfil').onsubmit = async (e) => {
     body.can_view_reports = canViewReports;
 
     try {
-        const res = await fetch('http://127.0.0.1:8000/api/usuario', {
+        const res = await fetch(USUARIO_URL, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1445,7 +1730,7 @@ async function editarPerfilDesdeModalReal(e) {
     }
     
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/usuario', {
+        const response = await fetch(USUARIO_URL, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1484,7 +1769,7 @@ async function editarPerfilDesdeModalReal(e) {
                     todosLosUsuarios[usuarioIndex].status = status;
                     todosLosUsuarios[usuarioIndex].can_view_users = canViewUsers;
                     todosLosUsuarios[usuarioIndex].can_view_reports = canViewReports;
-                    // Recargar la lista de usuarios en la interfaz
+                    // Recargar la lista de usuarios en memoria
                     mostrarUsuarios(todosLosUsuarios);
                 }
             }
@@ -1870,9 +2155,9 @@ async function cargarUsuarios() {
     try {
         console.log('🔍 Cargando usuarios...');
         console.log('Token:', token ? 'Presente' : 'Ausente');
-        console.log('URL:', 'http://127.0.0.1:8000/api/usuarios');
+        console.log('URL:', USUARIOS_URL);
         
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios', {
+        const response = await fetch(USUARIOS_URL, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -2117,7 +2402,7 @@ async function crearUsuarioDesdeModal() {
     }
     
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/register', {
+        const response = await fetch(REGISTER_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -2390,7 +2675,7 @@ async function editarPerfilDesdeModal(e) {
     }
     
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/usuario', {
+        const response = await fetch(USUARIO_URL, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
