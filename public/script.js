@@ -320,14 +320,14 @@ async function enviarFormulario() {
             return;
         }
         
-        // Construir URL de forma más robusta
+        // Construir URL de forma más robusta usando configuración
         let url;
         if (editandoId) {
             // Usar POST en lugar de PUT para evitar problemas de redirección del servidor
-            url = `http://127.0.0.1:8000/api/tareas/${editandoId}/update`;
+            url = `${API_BASE_URL}/tareas/${editandoId}/update`;
             console.log('🔧 Usando POST para actualización (evita redirección del servidor)');
         } else {
-            url = `http://127.0.0.1:8000/api/tareas`;
+            url = API_URL;
         }
         
         console.log('🔍 DEBUG DE URL:');
@@ -350,7 +350,7 @@ async function enviarFormulario() {
         console.log('  - Longitud de URL:', url.length);
         
         // Verificación crítica de la URL
-        if (!url.startsWith('http://127.0.0.1:8000/api/')) {
+        if (!url.startsWith('http') || !url.includes('/api/')) {
             console.error('❌ URL incorrecta detectada:', url);
             alert('Error: URL incorrecta para la petición');
             return;
