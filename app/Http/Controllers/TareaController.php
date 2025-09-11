@@ -39,8 +39,8 @@ class TareaController extends Controller
                 });
             }
             
-            // Obtener tareas compartidas por separado
-            $tareasCompartidas = $request->user()->tareasCompartidas();
+            // Obtener tareas compartidas por separado con información del usuario que las compartió
+            $tareasCompartidas = $request->user()->tareasCompartidas()->with('user');
             
             // Aplicar los mismos filtros a las tareas compartidas
             if ($request->has('filtro')) {
@@ -71,9 +71,10 @@ class TareaController extends Controller
                 $tarea->es_propia = true;
             });
             
-            // Marcar tareas compartidas
+            // Marcar tareas compartidas y agregar información del usuario que las compartió
             $tareasCompartidas->each(function($tarea) {
                 $tarea->es_propia = false;
+                $tarea->usuario_compartio = $tarea->user ? $tarea->user->username : 'Usuario desconocido';
             });
             
             // Combinar las colecciones

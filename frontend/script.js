@@ -148,7 +148,7 @@ async function cargarTareas(){
             <div style="display: flex; align-items: center; width: 100%; position: relative; min-height: 60px;">
                 <div style="flex: 1; text-align: left;">
                     <strong style="color: ${getColor(tarea.prioridad)}; font-size:1em;">${tarea.titulo}</strong>
-                    ${!esTareaPropia ? '<small style="color: #007bff; margin-left: 8px; font-size: 0.95em;">(Compartida)</small>' : ''}
+                    ${!esTareaPropia ? `<small style="color: #007bff; margin-left: 8px; font-size: 0.9em; font-style: italic; opacity: 0.8;">📤 Compartida por <strong>${tarea.usuario_compartio || 'Usuario desconocido'}</strong></small>` : ''}
                 </div>
                 <div style="flex: 2; text-align: center; margin: 0 10px;">
                     <span style="color:#222; font-size:0.98em;">${tarea.descripcion}</span> <br>
